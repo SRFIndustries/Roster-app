@@ -265,7 +265,7 @@
   <div class="tab-content active" id="tab-roster">
     <div class="legend">
       <div class="legend-item"><div class="legend-dot" style="background:rgba(239,68,68,.4)"></div>Needs staff / Conflict</div>
-      <div class="legend-item"><div class="legend-dot" style="background:rgba(251,146,60,.4)"></div>Too close (&lt;4w gap)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(251,146,60,.4)"></div>Rostered too soon (under 3 weeks from last rotation)</div>
       <div class="legend-item"><div class="legend-dot" style="background:rgba(180,83,9,.4)"></div>Public holiday</div>
       <div class="legend-item"><div class="legend-dot" style="background:#1a1a2e;border:1px solid #a78bfa"></div>Unavailable (AL/Training)</div>
       <div class="legend-item"><div class="legend-dot" style="background:#0e2a30;border:1px solid #67e8f9"></div>RDO week</div>
@@ -668,7 +668,24 @@ function renderRotations(){
             ${recBadge(rec2,'no2')}
           </div>` : ''}
         </div>
-        <div style="display:flex;gap:5px;justify-content:flex-end;margin-top:2px">
+        <div style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px;display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">🏭 Tulla PM / Morwell</div>
+          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Tulla PM #1</span><select id="redit-tulla1-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.tulla1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
+          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Tulla PM #2</span><select id="redit-tulla2-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.tulla2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
+          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Morwell #1</span><select id="redit-mw1-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
+          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Morwell #2</span><select id="redit-mw2-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
+        </div>
+        <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:6px;display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">📚 Training / PDR</div>
+          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Trade School</span><select id="redit-ts-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.ts||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
+          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">VBI</span><select id="redit-vbi-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.vbi||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
+          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">PDR</span><select id="redit-pdr-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.pdr||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
+        </div>
+        <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:6px;display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">🏫 School Holidays</div>
+          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">School Hols</span><input type="text" id="redit-sch-${i}" value="${r.sch||''}" placeholder="e.g. Term 2 holidays" style="flex:1;font-size:11px;padding:3px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text)"></div>
+        </div>
+        <div style="display:flex;gap:5px;justify-content:flex-end;margin-top:6px;border-top:1px solid var(--border);padding-top:6px">
           <button class="btn" style="padding:3px 12px;font-size:11px" onclick="saveRotEdit(${i})">✓ Save</button>
           <button class="remove-btn" onclick="cancelRotEdit()" style="font-size:13px">✕</button>
         </div>
@@ -702,10 +719,19 @@ function sortRotations(){
 }
 
 function saveRotEdit(i){
-  const thu = document.getElementById(`redit-thu-${i}`)?.value || rotations[i].thu;
-  const no1 = document.getElementById(`redit-no1-${i}`)?.value || rotations[i].no1;
-  const no2 = document.getElementById(`redit-no2-${i}`)?.value || rotations[i].no2;
-  rotations[i] = { thu, no1, no2 };
+  const r = rotations[i];
+  const thu    = document.getElementById(`redit-thu-${i}`)?.value    || r.thu;
+  const no1    = document.getElementById(`redit-no1-${i}`)?.value    || r.no1;
+  const no2    = document.getElementById(`redit-no2-${i}`)?.value    || r.no2;
+  const tulla1 = document.getElementById(`redit-tulla1-${i}`)?.value ?? r.tulla1 ?? '';
+  const tulla2 = document.getElementById(`redit-tulla2-${i}`)?.value ?? r.tulla2 ?? '';
+  const mw1    = document.getElementById(`redit-mw1-${i}`)?.value    ?? r.mw1    ?? '';
+  const mw2    = document.getElementById(`redit-mw2-${i}`)?.value    ?? r.mw2    ?? '';
+  const ts     = document.getElementById(`redit-ts-${i}`)?.value     ?? r.ts     ?? '';
+  const vbi    = document.getElementById(`redit-vbi-${i}`)?.value    ?? r.vbi    ?? '';
+  const pdr    = document.getElementById(`redit-pdr-${i}`)?.value    ?? r.pdr    ?? '';
+  const sch    = document.getElementById(`redit-sch-${i}`)?.value    ?? r.sch    ?? '';
+  rotations[i] = { thu, no1, no2, tulla1, tulla2, mw1, mw2, ts, vbi, pdr, sch };
   sortRotations();
   editingRotIdx = -1;
   autoSave();
@@ -718,7 +744,7 @@ function addRotationSlot(){
   const last=rotations[rotations.length-1];
   let nextThu=last?new Date(last.thu):new Date('2026-03-26');
   nextThu.setDate(nextThu.getDate()+7);
-  rotations.push({thu:fmtDate(nextThu),no1:'',no2:''});
+  rotations.push({thu:fmtDate(nextThu),no1:'',no2:'',tulla1:'',tulla2:'',mw1:'',mw2:'',ts:'',vbi:'',pdr:'',sch:''});
   sortRotations();
   editingRotIdx = rotations.length - 1;
   autoSave();
@@ -940,10 +966,7 @@ function _generateRoster(){
             flags++;
           }
         }
-        if(isThu&&rot.thu){
-          const g=weekGapViolation(no1, rot.thu);
-          if(g){ no1GapConflict=g; flags++; }
-        }
+        if(isThu&&rot.thu){ const g=weekGapViolation(no1,rot.thu); if(g){no1GapConflict=g;flags++;} }
       }
       if(phName&&no1!=='NEEDS STAFF'&&prevWorkerMap[no1]){
         const prev=prevWorkerMap[no1].find(p=>Object.values(VIC_PH_2026).includes(phName)&&p.name===phName);
@@ -963,10 +986,7 @@ function _generateRoster(){
             flags++;
           }
         }
-        if(isThu&&rot.thu){
-          const g=weekGapViolation(no2, rot.thu);
-          if(g){ no2GapConflict=g; flags++; }
-        }
+        if(isThu&&rot.thu){ const g=weekGapViolation(no2,rot.thu); if(g){no2GapConflict=g;flags++;} }
       }
       if(phName&&no2!=='NEEDS STAFF'&&prevWorkerMap[no2]){
         const prev=prevWorkerMap[no2].find(p=>p.name===phName);
@@ -1018,10 +1038,10 @@ function _generateRoster(){
       isPhDay:!!phName,phName:phName||'',
       no1,no2,no1Flag,no2Flag,no1PrevConflict,no2PrevConflict,no1RdoConflict,no2RdoConflict,
       no1UnavailNote,no2UnavailNote,no1GapConflict,no2GapConflict,
-      dandy1,dandy2,tulla1:'',tulla2:'',mw1:'',mw2:'',
-      ts:'',vbi:'',pdr:'',
+      dandy1,dandy2,tulla1:rot.tulla1||'',tulla2:rot.tulla2||'',mw1:rot.mw1||'',mw2:rot.mw2||'',
+      ts:rot.ts||'',vbi:rot.vbi||'',pdr:rot.pdr||'',sch:rot.sch||'',
       pubEH:pub?'Yes':'',pubOL:pub?'Yes':'',
-      swing:rdoMonday,al1,al2,sch:'',
+      swing:rdoMonday,al1,al2,sch:rot.sch||'',
       isNewNo1:isNewStaff(no1),isNewNo2:isNewStaff(no2),
     });
     d.setDate(d.getDate()+1);
@@ -1054,7 +1074,7 @@ function renderAlerts(flags){
   let html='';
   if(rosterData.find(r=>r.isFlag)) html+=`<div class="alert">⚑ Staff availability issues found — red rows need a replacement assigned.</div>`;
   if(rdoConflicts.length) html+=`<div class="alert alert-warn">🔄 ${rdoConflicts.length} RDO conflict(s) — staff rostered during their RDO week.</div>`;
-  if(gapConflicts.length){const names=[...new Set(gapConflicts.map(c=>c.msg.split(' on-call')[0]))].join(', ');html+=`<div class="alert alert-warn" style="border-color:rgba(251,146,60,.4);background:rgba(251,146,60,.08);color:#fed7aa">⏱ ${gapConflicts.length} too-close rotation(s) — ${names} rostered less than 4 weeks apart. Shown with CLOSE badge.</div>`;}
+  if(gapConflicts.length){const names=[...new Set(gapConflicts.map(c=>c.msg.split(' on-call')[0]))].join(', ');html+=`<div class="alert alert-warn" style="border-color:rgba(251,146,60,.4);background:rgba(251,146,60,.08);color:#fed7aa">⚠ ${gapConflicts.length} too-soon rotation(s) — ${names} rostered less than 3 weeks after a previous rotation.</div>`;}
   if(unavailConflicts.length) html+=`<div class="alert alert-warn" style="border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08);color:#c4b5fd">📅 ${[...new Set(unavailConflicts.map(c=>c.msg.split(':')[0]))].join(', ')} rostered during unavailability — shown with N/A badge.</div>`;
   if(phConflicts.length) html+=`<div class="alert alert-warn">⚠ ${phConflicts.length} public holiday repeat conflict(s).</div>`;
   if(fairness.length){
@@ -1077,7 +1097,8 @@ function cellHtml(val,isFlag,isNew,prevConflict,rdoConflict,unavailNote,gapConfl
   const rdoBadge=rdoConflict?'<span style="color:#67e8f9;margin-left:3px;font-size:9px">RDO</span>':'';
   const phBadge=prevConflict?'<span style="color:#f87171;margin-left:2px;font-size:9px">⚑</span>':'';
   const unavailBadge=unavailNote?'<span style="color:#a78bfa;margin-left:2px;font-size:9px" title="'+unavailNote+'">N/A</span>':'';
-  const gapBadge=gapConflict?'<span style="color:#fb923c;margin-left:2px;font-size:9px" title="'+gapConflict+'">CLOSE</span>':'';  const border=hasConflict?'border:1px solid '+(rdoConflict?'#67e8f9':'#f87171')+';':gapConflict?'border:1px solid #fb923c55;':unavailNote?'border:1px solid #a78bfa33;':'';
+  const gapBadge=gapConflict?'<span style="color:#fb923c;margin-left:2px;font-size:9px" title="'+gapConflict+'">⚠ Too soon</span>':'';
+  const border=hasConflict?'border:1px solid '+(rdoConflict?'#67e8f9':'#f87171')+';':gapConflict?'border:1px solid #fb923c55;':unavailNote?'border:1px solid #a78bfa33;':'';
   const bg=gapConflict&&!hasConflict?'background:#2d1a0a;':unavailNote&&!hasConflict?'background:#1a1a2e;':'';
   return`<td><span class="cell-name ${cls}"${tip} style="${border}${bg}">${val}${rdoBadge}${phBadge}${unavailBadge}${gapBadge}</span></td>`;
 }
@@ -1099,14 +1120,19 @@ function renderTable(){
       ${cellHtml(r.no2,r.no2Flag,r.isNewNo2,r.no2PrevConflict,r.no2RdoConflict,r.no2UnavailNote,r.no2GapConflict)}
       ${cellHtml(r.dandy1,r.dandy1==='NEEDS STAFF',false,'','','')}
       ${cellHtml(r.dandy2,r.dandy2==='NEEDS STAFF',false,'','','')}
-      <td></td><td></td><td></td><td></td>
-      <td></td><td></td><td></td>
+      ${cellHtml(r.tulla1,false,false,'','','')}
+      ${cellHtml(r.tulla2,false,false,'','','')}
+      ${cellHtml(r.mw1,false,false,'','','')}
+      ${cellHtml(r.mw2,false,false,'','','')}
+      ${cellHtml(r.ts,false,false,'','','')}
+      ${cellHtml(r.vbi,false,false,'','','')}
+      ${cellHtml(r.pdr,false,false,'','','')}
       <td>${r.pubEH?`<span class="cell-name cell-yes">${r.pubEH}</span>`:''}</td>
       <td>${r.pubOL?`<span class="cell-name cell-yes">${r.pubOL}</span>`:''}</td>
       ${swCell}
       <td>${r.al1?`<span class="cell-name cell-al">${r.al1}</span>`:''}</td>
       <td>${r.al2?`<span class="cell-name cell-al">${r.al2}</span>`:''}</td>
-      <td></td>
+      <td>${r.sch?`<span class="cell-name" style="background:#0d2a1a;color:#6ee7b7;font-size:10px">${r.sch}</span>`:''}</td>
       ${phCell}
     </tr>`;
   }).join('');
@@ -1172,8 +1198,8 @@ function renderConflictPanel(){
   let html='';
 
   if(gapConflicts.length){
-    html+=`<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#fb923c">⏱ Too-Close Rotations (${gapConflicts.length})</div>`;
-    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:10px">These staff are rostered on-call less than 4 weeks from another rotation. Go to Edit Rotations to reassign.</div>`;
+    html+=`<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#fb923c">⚠ Rostered Too Soon (${gapConflicts.length})</div>`;
+    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:10px">These staff are rostered on-call less than 3 weeks from another rotation. Go to Edit Rotations to reassign them.</div>`;
     html+='<div class="conflict-list">';
     gapConflicts.forEach(c=>{html+=`<div class="conflict-item" style="border-color:rgba(251,146,60,.3);background:rgba(251,146,60,.06);color:#fed7aa"><strong style="color:#fb923c">Week of ${c.ds}</strong> — ${c.msg}</div>`;});
     html+='</div>';
@@ -1557,7 +1583,7 @@ function getOnCallCounts(){
   return counts;
 }
 
-const MIN_GAP_WEEKS = 4;
+const MIN_GAP_WEEKS = 3;
 
 function weekGapViolation(name, thuDateStr){
   const minDays = MIN_GAP_WEEKS * 7;
