@@ -71,6 +71,7 @@
   .row-thu{background:rgba(79,142,247,.05)}
   .row-wed{background:rgba(124,58,237,.05)}
   .row-red{background:rgba(239,68,68,.12)!important}
+  .row-gap{background:rgba(251,146,60,.10)!important}
   .row-ph{background:rgba(180,83,9,.13)!important}
   .row-ph-conflict{background:rgba(239,68,68,.18)!important;outline:2px solid rgba(239,68,68,.4)}
   .cell-name{font-weight:500;font-size:11px;padding:1px 5px;border-radius:3px;display:inline-block}
@@ -264,6 +265,7 @@
   <div class="tab-content active" id="tab-roster">
     <div class="legend">
       <div class="legend-item"><div class="legend-dot" style="background:rgba(239,68,68,.4)"></div>Needs staff / Conflict</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(251,146,60,.4)"></div>Too close (&lt;4w gap)</div>
       <div class="legend-item"><div class="legend-dot" style="background:rgba(180,83,9,.4)"></div>Public holiday</div>
       <div class="legend-item"><div class="legend-dot" style="background:#1a1a2e;border:1px solid #a78bfa"></div>Unavailable (AL/Training)</div>
       <div class="legend-item"><div class="legend-dot" style="background:#0e2a30;border:1px solid #67e8f9"></div>RDO week</div>
@@ -606,7 +608,8 @@ function getRecommendations(thuDateStr, role, exclude){
     const total = counts[s.name]?.total || 0;
     const hasRdo = s.swing ? weekContainsRdo(parseDate(thuDateStr), s.swing) : false;
     const unavail = weekHasUnavail(s.name, thuDateStr);
-    return { name:s.name, total, hasRdo, unavail, score: total + (hasRdo?99:0) + (unavail?99:0) };
+    const tooClose = weekGapViolation(s.name, thuDateStr);
+    return { name:s.name, total, hasRdo, unavail, tooClose, score: total + (hasRdo?99:0) + (unavail?99:0) + (tooClose?50:0) };
   }).sort((a,b) => a.score - b.score);
 }
 
@@ -920,6 +923,7 @@ function _generateRoster(){
     let no1PrevConflict='',no2PrevConflict='';
     let no1RdoConflict='',no2RdoConflict='';
     let no1UnavailNote='',no2UnavailNote='';
+    let no1GapConflict='',no2GapConflict='';
 
     // Check staff availability — RDO check only fires on Thursday (start of week) to avoid 7x duplication
     if(no1){
@@ -935,6 +939,10 @@ function _generateRoster(){
             no1RdoConflict=`${no1} has RDO on ${ds} (Swing ${s.swing}) — on-call this week`;
             flags++;
           }
+        }
+        if(isThu&&rot.thu){
+          const g=weekGapViolation(no1, rot.thu);
+          if(g){ no1GapConflict=g; flags++; }
         }
       }
       if(phName&&no1!=='NEEDS STAFF'&&prevWorkerMap[no1]){
@@ -954,6 +962,10 @@ function _generateRoster(){
             no2RdoConflict=`${no2} has RDO on ${ds} (Swing ${s.swing}) — on-call this week`;
             flags++;
           }
+        }
+        if(isThu&&rot.thu){
+          const g=weekGapViolation(no2, rot.thu);
+          if(g){ no2GapConflict=g; flags++; }
         }
       }
       if(phName&&no2!=='NEEDS STAFF'&&prevWorkerMap[no2]){
@@ -976,6 +988,7 @@ function _generateRoster(){
     const hasPrevConflict=!!(no1PrevConflict||no2PrevConflict);
     const hasRdoConflict=!!(no1RdoConflict||no2RdoConflict);
     const hasUnavail=!!(no1UnavailNote||no2UnavailNote);
+    const hasGapConflict=!!(no1GapConflict||no2GapConflict);
     const hasStaffFlag=no1Flag||no2Flag||(dandy1==='NEEDS STAFF')||(dandy2==='NEEDS STAFF');
 
     if(no1PrevConflict)conflictData.push({ds,type:'prev_ph',msg:no1PrevConflict,ph:phName});
@@ -984,6 +997,8 @@ function _generateRoster(){
     if(no2RdoConflict) conflictData.push({ds,type:'rdo',msg:no2RdoConflict,ph:null});
     if(no1UnavailNote) conflictData.push({ds,type:'unavail',msg:no1UnavailNote,ph:null});
     if(no2UnavailNote) conflictData.push({ds,type:'unavail',msg:no2UnavailNote,ph:null});
+    if(no1GapConflict) conflictData.push({ds,type:'gap',msg:no1GapConflict,ph:null});
+    if(no2GapConflict) conflictData.push({ds,type:'gap',msg:no2GapConflict,ph:null});
 
     // Determine the RDO Monday in this week (for display)
     let rdoMonday='';
@@ -999,10 +1014,10 @@ function _generateRoster(){
     rosterData.push({
       date:d.toLocaleDateString('en-AU',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}),
       ds,isThu,isWed,
-      isFlag:hasStaffFlag,isPrevConflict:hasPrevConflict,isRdoConflict:hasRdoConflict,isUnavail:hasUnavail,
+      isFlag:hasStaffFlag,isPrevConflict:hasPrevConflict,isRdoConflict:hasRdoConflict,isUnavail:hasUnavail,isGapConflict:hasGapConflict,
       isPhDay:!!phName,phName:phName||'',
       no1,no2,no1Flag,no2Flag,no1PrevConflict,no2PrevConflict,no1RdoConflict,no2RdoConflict,
-      no1UnavailNote,no2UnavailNote,
+      no1UnavailNote,no2UnavailNote,no1GapConflict,no2GapConflict,
       dandy1,dandy2,tulla1:'',tulla2:'',mw1:'',mw2:'',
       ts:'',vbi:'',pdr:'',
       pubEH:pub?'Yes':'',pubOL:pub?'Yes':'',
@@ -1034,10 +1049,12 @@ function renderAlerts(flags){
   const rdoConflicts=conflictData.filter(c=>c.type==='rdo');
   const phConflicts=conflictData.filter(c=>c.type==='prev_ph');
   const unavailConflicts=conflictData.filter(c=>c.type==='unavail');
+  const gapConflicts=conflictData.filter(c=>c.type==='gap');
   const fairness=checkFairness();
   let html='';
   if(rosterData.find(r=>r.isFlag)) html+=`<div class="alert">⚑ Staff availability issues found — red rows need a replacement assigned.</div>`;
   if(rdoConflicts.length) html+=`<div class="alert alert-warn">🔄 ${rdoConflicts.length} RDO conflict(s) — staff rostered during their RDO week.</div>`;
+  if(gapConflicts.length){const names=[...new Set(gapConflicts.map(c=>c.msg.split(' on-call')[0]))].join(', ');html+=`<div class="alert alert-warn" style="border-color:rgba(251,146,60,.4);background:rgba(251,146,60,.08);color:#fed7aa">⏱ ${gapConflicts.length} too-close rotation(s) — ${names} rostered less than 4 weeks apart. Shown with CLOSE badge.</div>`;}
   if(unavailConflicts.length) html+=`<div class="alert alert-warn" style="border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08);color:#c4b5fd">📅 ${[...new Set(unavailConflicts.map(c=>c.msg.split(':')[0]))].join(', ')} rostered during unavailability — shown with N/A badge.</div>`;
   if(phConflicts.length) html+=`<div class="alert alert-warn">⚠ ${phConflicts.length} public holiday repeat conflict(s).</div>`;
   if(fairness.length){
@@ -1050,19 +1067,19 @@ function renderAlerts(flags){
   box.innerHTML=html;
 }
 
-function cellHtml(val,isFlag,isNew,prevConflict,rdoConflict,unavailNote){
+function cellHtml(val,isFlag,isNew,prevConflict,rdoConflict,unavailNote,gapConflict){
   if(!val)return '<td></td>';
   if(isFlag||val==='NEEDS STAFF')return`<td><span class="cell-name cell-replaced">⚑ NEEDS STAFF</span></td>`;
   let cls=isNew?'cell-new':'';
   const hasConflict=prevConflict||rdoConflict;
-  const allTips=[rdoConflict,prevConflict,unavailNote].filter(Boolean).join(' | ');
+  const allTips=[rdoConflict,prevConflict,unavailNote,gapConflict].filter(Boolean).join(' | ');
   const tip=allTips?` title="${allTips}"`:'';
   const rdoBadge=rdoConflict?'<span style="color:#67e8f9;margin-left:3px;font-size:9px">RDO</span>':'';
   const phBadge=prevConflict?'<span style="color:#f87171;margin-left:2px;font-size:9px">⚑</span>':'';
   const unavailBadge=unavailNote?'<span style="color:#a78bfa;margin-left:2px;font-size:9px" title="'+unavailNote+'">N/A</span>':'';
-  const border=hasConflict?'border:1px solid '+(rdoConflict?'#67e8f9':'#f87171')+';':unavailNote?'border:1px solid #a78bfa33;':'';
-  const bg=unavailNote&&!hasConflict?'background:#1a1a2e;':'';
-  return`<td><span class="cell-name ${cls}"${tip} style="${border}${bg}">${val}${rdoBadge}${phBadge}${unavailBadge}</span></td>`;
+  const gapBadge=gapConflict?'<span style="color:#fb923c;margin-left:2px;font-size:9px" title="'+gapConflict+'">CLOSE</span>':'';  const border=hasConflict?'border:1px solid '+(rdoConflict?'#67e8f9':'#f87171')+';':gapConflict?'border:1px solid #fb923c55;':unavailNote?'border:1px solid #a78bfa33;':'';
+  const bg=gapConflict&&!hasConflict?'background:#2d1a0a;':unavailNote&&!hasConflict?'background:#1a1a2e;':'';
+  return`<td><span class="cell-name ${cls}"${tip} style="${border}${bg}">${val}${rdoBadge}${phBadge}${unavailBadge}${gapBadge}</span></td>`;
 }
 
 function renderTable(){
@@ -1070,6 +1087,7 @@ function renderTable(){
   tbody.innerHTML=rosterData.map(r=>{
     let cls='';
     if(r.isFlag||r.isPrevConflict||r.isRdoConflict)cls='row-red';
+    else if(r.isGapConflict)cls='row-gap';
     else if(r.isPhDay)cls='row-ph';
     else if(r.isThu)cls='row-thu';
     else if(r.isWed)cls='row-wed';
@@ -1077,8 +1095,8 @@ function renderTable(){
     const swCell=r.swing?`<td><span class="cell-rdo">${r.swing}</span></td>`:'<td></td>';
     return`<tr class="${cls}">
       <td>${r.date}</td>
-      ${cellHtml(r.no1,r.no1Flag,r.isNewNo1,r.no1PrevConflict,r.no1RdoConflict,r.no1UnavailNote)}
-      ${cellHtml(r.no2,r.no2Flag,r.isNewNo2,r.no2PrevConflict,r.no2RdoConflict,r.no2UnavailNote)}
+      ${cellHtml(r.no1,r.no1Flag,r.isNewNo1,r.no1PrevConflict,r.no1RdoConflict,r.no1UnavailNote,r.no1GapConflict)}
+      ${cellHtml(r.no2,r.no2Flag,r.isNewNo2,r.no2PrevConflict,r.no2RdoConflict,r.no2UnavailNote,r.no2GapConflict)}
       ${cellHtml(r.dandy1,r.dandy1==='NEEDS STAFF',false,'','','')}
       ${cellHtml(r.dandy2,r.dandy2==='NEEDS STAFF',false,'','','')}
       <td></td><td></td><td></td><td></td>
@@ -1144,13 +1162,22 @@ function renderConflictPanel(){
   const rdoConflicts=conflictData.filter(c=>c.type==='rdo');
   const unavailConflicts=[...new Map(conflictData.filter(c=>c.type==='unavail').map(c=>[c.msg,c])).values()];
   const phConflicts=conflictData.filter(c=>c.type==='prev_ph');
+  const gapConflicts=[...new Map(conflictData.filter(c=>c.type==='gap').map(c=>[c.msg,c])).values()];
 
   const fairness=checkFairness();
-  if(!staffFlags.length&&!rdoConflicts.length&&!unavailConflicts.length&&!phConflicts.length&&!fairness.length){
+  if(!staffFlags.length&&!rdoConflicts.length&&!unavailConflicts.length&&!phConflicts.length&&!gapConflicts.length&&!fairness.length){
     panel.innerHTML=`<div style="text-align:center;padding:32px;color:var(--text3);font-size:12px">✓ No conflicts found — roster looks clean!</div>`;
     return;
   }
   let html='';
+
+  if(gapConflicts.length){
+    html+=`<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#fb923c">⏱ Too-Close Rotations (${gapConflicts.length})</div>`;
+    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:10px">These staff are rostered on-call less than 4 weeks from another rotation. Go to Edit Rotations to reassign.</div>`;
+    html+='<div class="conflict-list">';
+    gapConflicts.forEach(c=>{html+=`<div class="conflict-item" style="border-color:rgba(251,146,60,.3);background:rgba(251,146,60,.06);color:#fed7aa"><strong style="color:#fb923c">Week of ${c.ds}</strong> — ${c.msg}</div>`;});
+    html+='</div>';
+  }
 
   if(rdoConflicts.length){
     // Group by week
@@ -1530,6 +1557,22 @@ function getOnCallCounts(){
   return counts;
 }
 
+const MIN_GAP_WEEKS = 4;
+
+function weekGapViolation(name, thuDateStr){
+  const minDays = MIN_GAP_WEEKS * 7;
+  const others = rotations.filter(r => r.thu !== thuDateStr && (r.no1 === name || r.no2 === name)).map(r => r.thu);
+  for(const other of others){
+    const diffDays = Math.abs((parseDate(thuDateStr) - parseDate(other)) / 86400000);
+    if(diffDays < minDays){
+      const weeks = Math.round(diffDays / 7);
+      const dir = other < thuDateStr ? 'previous' : 'next';
+      return `${name} on-call ${other} (${dir} rotation) — only ${weeks}w gap (min ${MIN_GAP_WEEKS}w)`;
+    }
+  }
+  return null;
+}
+
 function isStaffAvailableForWeek(name, thuDateStr, role){
   const s = staff.find(x => x.name === name);
   if(!s) return false;
@@ -1546,6 +1589,7 @@ function isStaffAvailableForWeek(name, thuDateStr, role){
     const mon = new Date(thu); mon.setDate(mon.getDate() + 4); // Thu+4 = Mon
     if(isRdoMonday(mon, s.swing)) return false;
   }
+  if(weekGapViolation(name, thuDateStr)) return false;
   return true;
 }
 
