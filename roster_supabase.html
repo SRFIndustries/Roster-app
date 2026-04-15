@@ -105,6 +105,8 @@
   .tab{padding:8px 16px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);transition:color .15s,border-color .15s}
   .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
   .tab-content{display:none}.tab-content.active{display:block}
+  @keyframes rosterFlash{0%{opacity:.4}50%{opacity:1}100%{opacity:1}}
+  .roster-updated{animation:rosterFlash .5s ease-out}
   @keyframes rosterFlash{0%{opacity:0;transform:translateY(-4px)}100%{opacity:1;transform:translateY(0)}}
   .roster-updated{animation:rosterFlash .4s ease-out}
   .generate-pulse{animation:none}
@@ -201,6 +203,7 @@
     <button class="btn btn-full" style="background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:13px;padding:10px" onclick="generateRoster();this.style.animation='btnPulse .6s ease-out';setTimeout(()=>{this.style.animation=''},700)">
       ⚡ Generate Roster
     </button>
+    <div id="lastGeneratedMsg" style="font-size:10px;color:var(--text3);margin-top:5px;text-align:center;min-height:14px"></div>
     <div id="lastGeneratedMsg" style="font-size:10px;color:var(--text3);margin-top:5px;text-align:center;min-height:14px"></div>
   </div>
 </div>
@@ -847,6 +850,16 @@ function fmtDate(d){
 }
 function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
 
+function normaliseStaff(){
+  staff = staff.map(s => ({
+    ...s,
+    dandyPM: s.dandyPM || false,
+    tullaPM: s.tullaPM || false,
+    morwell:  s.morwell  || false,
+  }));
+}
+
+
 // Build a map of who worked which PH previously (for conflict detection)
 function getPrevPhWorkers(){
   const map={};
@@ -1207,6 +1220,11 @@ function renderTable(){
   // Update last generated timestamp
   const lastGen = document.getElementById('lastGeneratedMsg');
   if(lastGen){ const now=new Date(); lastGen.textContent='Last updated: '+now.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); lastGen.style.color='#4ade80'; setTimeout(()=>{if(lastGen)lastGen.style.color='var(--text3)';},2000); }
+  // Flash table and update timestamp
+  const _tw=document.querySelector('.preview-table-wrap');
+  if(_tw){_tw.classList.remove('roster-updated');void _tw.offsetWidth;_tw.classList.add('roster-updated');setTimeout(()=>_tw.classList.remove('roster-updated'),500);}
+  const _lg=document.getElementById('lastGeneratedMsg');
+  if(_lg){const _n=new Date();_lg.textContent='Updated '+_n.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit',second:'2-digit'});_lg.style.color='#4ade80';setTimeout(()=>{if(_lg)_lg.style.color='var(--text3)';},2500);}
   tbody.innerHTML=rosterData.map(r=>{
     let cls='';
     if(r.isFlag||r.isPrevConflict||r.isRdoConflict)cls='row-red';
@@ -1437,6 +1455,7 @@ function loadState(event){
       staff         = state.staff;
       rotations     = state.rotations;
       unavailability= state.unavailability||[];
+      normaliseStaff();
       prevPhWorked  = state.prevPhWorked||prevPhWorked;
       if(state.startDate)document.getElementById('startDate').value=state.startDate;
       if(state.endDate)document.getElementById('endDate').value=state.endDate;
@@ -1651,6 +1670,7 @@ function autoLoad(){
     prevPhWorked  = state.prevPhWorked||prevPhWorked;
     if(state.startDate) document.getElementById('startDate').value = state.startDate;
     if(state.endDate)   document.getElementById('endDate').value   = state.endDate;
+    normaliseStaff();
     showSaveIndicator('Auto-saved state loaded ✓');
     return true;
   } catch(e){ console.warn('Auto-load failed:', e); return false; }
@@ -1844,6 +1864,7 @@ async function loadFromCloud(){
     rotations      = s.rotations;
     unavailability = s.unavailability||[];
     prevPhWorked   = s.prevPhWorked||prevPhWorked;
+    normaliseStaff();
     if(s.startDate) document.getElementById('startDate').value = s.startDate;
     if(s.endDate)   document.getElementById('endDate').value   = s.endDate;
     autoSave();
