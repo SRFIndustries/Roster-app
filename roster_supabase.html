@@ -579,6 +579,7 @@ function saveEdit(name){
   editingIdx=-1;
   autoSave();
   renderStaff();
+  generateRoster();
 }
 
 function addStaff(){
@@ -598,6 +599,7 @@ function addStaff(){
   document.getElementById('newName').value='';
   autoSave();
   renderStaff();
+  generateRoster();
 }
 function removeStaff(name){
   const i=staff.findIndex(s=>s.name===name);
@@ -607,6 +609,7 @@ function removeStaff(name){
   editingIdx=-1;
   autoSave();
   renderStaff();
+  generateRoster();
 }
 
 function renderRotationSummary(){
@@ -885,6 +888,7 @@ function addUnavail(){
   renderUnavailPanel();
   document.getElementById('uFrom').value='';
   document.getElementById('uTo').value='';
+  generateRoster();
 }
 
 function removeUnavail(i){
@@ -892,6 +896,7 @@ function removeUnavail(i){
   autoSave();
   renderUnavailList();
   renderUnavailPanel();
+  generateRoster();
 }
 
 function renderUnavailList(){
