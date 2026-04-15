@@ -1717,6 +1717,13 @@ function showSaveIndicator(msg){
 function autoFixConflicts(){
   const counts = getOnCallCounts();
   let fixed = 0;
+  let totalFixed = 0;
+  let passes = 0;
+
+  // Run multiple passes — each pass may unlock new fixes
+  do {
+    fixed = 0;
+    passes++;
 
   rotations.forEach(r => {
     const thuDate = r.thu;
@@ -1767,12 +1774,15 @@ function autoFixConflicts(){
     }
   });
 
-  if(fixed > 0){
+    totalFixed += fixed;
+  } while(fixed > 0 && passes < 5); // max 5 passes
+
+  if(totalFixed > 0){
     autoSave();
     renderRotations();
     renderRotationSummary();
     generateRoster();
-    showSaveIndicator(`✓ Auto-fixed ${fixed} conflict${fixed!==1?'s':''}  — roster updated`);
+    showSaveIndicator(`✓ Auto-fixed ${totalFixed} conflict${totalFixed!==1?'s':''}  — roster updated`);
   } else {
     showSaveIndicator('No fixable conflicts found');
   }
