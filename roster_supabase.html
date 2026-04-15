@@ -1106,33 +1106,45 @@ function _generateRoster(){
       }
     }
 
-    // Dandy PM — Wednesday only, accredited staff only
+    // ── Auto-assign Dandy PM (every Wednesday) ──────────────────────────────
     let dandy1='',dandy2='';
     if(isWed){
-      const d1=rot.dandy1||''; const d2=rot.dandy2||'';
-      const sd1=staff.find(x=>x.name===d1); const sd2=staff.find(x=>x.name===d2);
-      dandy1 = (sd1&&sd1.dandy1&&!(sd1.end&&ds>sd1.end)) ? d1 : (d1?'NEEDS STAFF':'');
-      dandy2 = (sd2&&sd2.dandy2&&!(sd2.end&&ds>sd2.end)) ? d2 : (d2?'NEEDS STAFF':'');
-      if(dandy1==='NEEDS STAFF')flags++;
-      if(dandy2==='NEEDS STAFF')flags++;
+      // Get all active accredited staff for each position
+      const d1pool = staff.filter(s=>s.dandy1&&!(s.end&&ds>s.end));
+      const d2pool = staff.filter(s=>s.dandy2&&!(s.end&&ds>s.end));
+      // Count how many Wednesdays have occurred so far in the roster
+      const wedsSoFar = rosterData.filter(r=>r.isWed).length;
+      if(d1pool.length) dandy1 = d1pool[wedsSoFar % d1pool.length].name;
+      if(d2pool.length) dandy2 = d2pool[wedsSoFar % d2pool.length].name;
+      // Ensure no double-up
+      if(dandy1 && dandy1===dandy2 && d2pool.length>1){
+        dandy2 = d2pool[(wedsSoFar+1) % d2pool.length].name;
+      }
     }
-    // Tulla PM — Wednesday only, accredited staff only
+    // ── Auto-assign Tulla PM (every Wednesday) ───────────────────────────────
     let tulla1='',tulla2='';
     if(isWed){
-      const t1=rot.tulla1||''; const t2=rot.tulla2||'';
-      const st1=staff.find(x=>x.name===t1); const st2=staff.find(x=>x.name===t2);
-      tulla1 = (st1&&st1.tullaPM&&!(st1.end&&ds>st1.end)) ? t1 : '';
-      tulla2 = (st2&&st2.tullaPM&&!(st2.end&&ds>st2.end)) ? t2 : '';
+      const t1pool = staff.filter(s=>s.tullaPM&&!(s.end&&ds>s.end));
+      const wedsSoFar = rosterData.filter(r=>r.isWed).length;
+      if(t1pool.length) tulla1 = t1pool[wedsSoFar % t1pool.length].name;
+      if(t1pool.length>1) tulla2 = t1pool[(wedsSoFar+1) % t1pool.length].name;
     }
-    // Morwell — specific Saturday stored in rotation, accredited staff only
+    // ── Auto-assign Morwell (first Saturday of each month) ───────────────────
     let mw1='',mw2='';
-    if(rot.mwDate&&ds===rot.mwDate){
-      const m1=rot.mw1||''; const m2=rot.mw2||'';
-      const sm1=staff.find(x=>x.name===m1); const sm2=staff.find(x=>x.name===m2);
-      mw1 = (sm1&&sm1.morwell1&&!(sm1.end&&ds>sm1.end)) ? m1 : (m1?'NEEDS STAFF':'');
-      mw2 = (sm2&&sm2.morwell2&&!(sm2.end&&ds>sm2.end)) ? m2 : (m2?'NEEDS STAFF':'');
-      if(mw1==='NEEDS STAFF')flags++;
-      if(mw2==='NEEDS STAFF')flags++;
+    if(d.getDay()===6){ // Saturday
+      // Check if this is the first Saturday of the month
+      const isFirstSat = d.getDate() <= 7;
+      if(isFirstSat){
+        const mw1pool = staff.filter(s=>s.morwell1&&!(s.end&&ds>s.end));
+        const mw2pool = staff.filter(s=>s.morwell2&&!(s.end&&ds>s.end));
+        // Count how many first-Saturdays have occurred so far
+        const satsSoFar = rosterData.filter(r=>{
+          const rd=parseDate(r.ds); return rd.getDay()===6&&rd.getDate()<=7;
+        }).length;
+        if(mw1pool.length) mw1 = mw1pool[satsSoFar % mw1pool.length].name;
+        if(mw2pool.length) mw2 = mw2pool[satsSoFar % mw2pool.length].name;
+        if(mw1&&mw1===mw2&&mw2pool.length>1) mw2=mw2pool[(satsSoFar+1)%mw2pool.length].name;
+      }
     }
 
     const pub=d<pubCutoff;
