@@ -160,10 +160,12 @@
         </select>
       </div>
       <div style="font-size:10px;color:var(--text3);margin-top:2px;margin-bottom:2px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Accreditations</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="newDandyPM"> Dandy PM</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="newTullaPM"> Tulla PM</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="newMorwell"> Morwell</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="newDandy1"> Dandy #1</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="newDandy2"> Dandy #2</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="newTullaPM"> Tulla PM</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="newMorwell1"> Morwell #1</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="newMorwell2"> Morwell #2</label>
       </div>
       <button class="btn btn-full" onclick="addStaff()">+ Add to Roster</button>
     </div>
@@ -535,10 +537,12 @@ function renderStaff(){
           <input id="ei-no1from" type="date" value="${s.no1From||''}" style="flex:1">
         </div>
         <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Accreditations</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-dandyPM" ${s.dandyPM?'checked':''}> Dandy PM</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-tullaPM" ${s.tullaPM?'checked':''}> Tulla PM</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-morwell" ${s.morwell?'checked':''}> Morwell</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-dandy1" ${s.dandy1?'checked':''}> Dandy #1</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-dandy2" ${s.dandy2?'checked':''}> Dandy #2</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-tullaPM" ${s.tullaPM?'checked':''}> Tulla PM</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-morwell1" ${s.morwell1?'checked':''}> Morwell #1</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-morwell2" ${s.morwell2?'checked':''}> Morwell #2</label>
         </div>
       </div>`;
     } else {
@@ -553,9 +557,11 @@ function renderStaff(){
               ${s.swing?`<span class="badge ${swingBadgeClass(s.swing)}">${swingLabel(s.swing)}</span>`:''}
               ${isNew?'<span class="badge badge-new">NEW</span>':''}
               ${s.end?'<span class="badge badge-left">'+s.end.slice(5)+'</span>':''}
-              ${s.dandyPM?'<span class="badge" style="background:#1a2a3d;color:#7ec8f5">DPM</span>':''}
+              ${s.dandy1?'<span class="badge" style="background:#1a2a3d;color:#7ec8f5">D1</span>':''}
+              ${s.dandy2?'<span class="badge" style="background:#1a2a3d;color:#93d5f7">D2</span>':''}
               ${s.tullaPM?'<span class="badge" style="background:#1a3d2a;color:#7ef5a0">TPM</span>':''}
-              ${s.morwell?'<span class="badge" style="background:#3d2a1a;color:#f5c07e">MW</span>':''}
+              ${s.morwell1?'<span class="badge" style="background:#3d2a1a;color:#f5c07e">MW1</span>':''}
+              ${s.morwell2?'<span class="badge" style="background:#3d2a1a;color:#f7d9a0">MW2</span>':''}
             </div>
           </div>
           <div class="staff-dates">${s.start?s.start.slice(5):''} – ${s.end?s.end.slice(5):'→'}${s.no1From?' · No.1@'+s.no1From.slice(5):''}${s.swing?' · RDO SW'+s.swing:''}</div>
@@ -582,9 +588,11 @@ function saveEdit(name){
   staff[i].start   = document.getElementById('ei-start').value;
   staff[i].end     = document.getElementById('ei-end').value;
   staff[i].no1From  = document.getElementById('ei-no1from').value;
-  staff[i].dandyPM  = document.getElementById('ei-dandyPM')?.checked||false;
+  staff[i].dandy1   = document.getElementById('ei-dandy1')?.checked||false;
+  staff[i].dandy2   = document.getElementById('ei-dandy2')?.checked||false;
   staff[i].tullaPM  = document.getElementById('ei-tullaPM')?.checked||false;
-  staff[i].morwell  = document.getElementById('ei-morwell')?.checked||false;
+  staff[i].morwell1 = document.getElementById('ei-morwell1')?.checked||false;
+  staff[i].morwell2 = document.getElementById('ei-morwell2')?.checked||false;
   editingIdx=-1;
   autoSave();
   renderStaff();
@@ -599,12 +607,16 @@ function addStaff(){
     end:document.getElementById('newEnd').value,
     no1From:document.getElementById('newNo1From').value,
     swing:document.getElementById('newSwing').value,
-    dandyPM:document.getElementById('newDandyPM').checked,
+    dandy1:document.getElementById('newDandy1').checked,
+    dandy2:document.getElementById('newDandy2').checked,
     tullaPM:document.getElementById('newTullaPM').checked,
-    morwell:document.getElementById('newMorwell').checked});
-  document.getElementById('newDandyPM').checked=false;
+    morwell1:document.getElementById('newMorwell1').checked,
+    morwell2:document.getElementById('newMorwell2').checked});
+  document.getElementById('newDandy1').checked=false;
+  document.getElementById('newDandy2').checked=false;
   document.getElementById('newTullaPM').checked=false;
-  document.getElementById('newMorwell').checked=false;
+  document.getElementById('newMorwell1').checked=false;
+  document.getElementById('newMorwell2').checked=false;
   document.getElementById('newName').value='';
   autoSave();
   renderStaff();
@@ -710,13 +722,13 @@ function renderRotations(){
           <div style="display:flex;gap:5px;align-items:center">
             <span style="font-size:10px;color:var(--text2);min-width:70px">Dandy #1</span>
             <select id="redit-dandy1-${i}" style="flex:1;font-size:11px;padding:3px 6px">
-              ${['', ...staff.filter(s=>s.dandyPM).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.dandy1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+              ${['', ...staff.filter(s=>s.dandy1).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.dandy1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
             </select>
           </div>
           <div style="display:flex;gap:5px;align-items:center">
             <span style="font-size:10px;color:var(--text2);min-width:70px">Dandy #2</span>
             <select id="redit-dandy2-${i}" style="flex:1;font-size:11px;padding:3px 6px">
-              ${['', ...staff.filter(s=>s.dandyPM).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.dandy2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+              ${['', ...staff.filter(s=>s.dandy2).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.dandy2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
             </select>
           </div>
         </div>
@@ -746,13 +758,13 @@ function renderRotations(){
           <div style="display:flex;gap:5px;align-items:center">
             <span style="font-size:10px;color:var(--text2);min-width:70px">Morwell #1</span>
             <select id="redit-mw1-${i}" style="flex:1;font-size:11px;padding:3px 6px">
-              ${['', ...staff.filter(s=>s.morwell).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+              ${['', ...staff.filter(s=>s.morwell1).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
             </select>
           </div>
           <div style="display:flex;gap:5px;align-items:center">
             <span style="font-size:10px;color:var(--text2);min-width:70px">Morwell #2</span>
             <select id="redit-mw2-${i}" style="flex:1;font-size:11px;padding:3px 6px">
-              ${['', ...staff.filter(s=>s.morwell).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+              ${['', ...staff.filter(s=>s.morwell2).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
             </select>
           </div>
         </div>
@@ -854,9 +866,12 @@ function parseDate(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-
 function normaliseStaff(){
   staff = staff.map(s => ({
     ...s,
-    dandyPM: s.dandyPM || false,
-    tullaPM: s.tullaPM || false,
-    morwell:  s.morwell  || false,
+    // Migrate old dandyPM -> dandy1+dandy2, old morwell -> morwell1+morwell2
+    dandy1:   s.dandy1   !== undefined ? s.dandy1   : (s.dandyPM||false),
+    dandy2:   s.dandy2   !== undefined ? s.dandy2   : (s.dandyPM||false),
+    tullaPM:  s.tullaPM  || false,
+    morwell1: s.morwell1 !== undefined ? s.morwell1 : (s.morwell||false),
+    morwell2: s.morwell2 !== undefined ? s.morwell2 : (s.morwell||false),
   }));
 }
 
@@ -1091,8 +1106,8 @@ function _generateRoster(){
     if(isWed){
       const d1=rot.dandy1||''; const d2=rot.dandy2||'';
       const sd1=staff.find(x=>x.name===d1); const sd2=staff.find(x=>x.name===d2);
-      dandy1 = (sd1&&sd1.dandyPM&&!(sd1.end&&ds>sd1.end)) ? d1 : (d1?'NEEDS STAFF':'');
-      dandy2 = (sd2&&sd2.dandyPM&&!(sd2.end&&ds>sd2.end)) ? d2 : (d2?'NEEDS STAFF':'');
+      dandy1 = (sd1&&sd1.dandy1&&!(sd1.end&&ds>sd1.end)) ? d1 : (d1?'NEEDS STAFF':'');
+      dandy2 = (sd2&&sd2.dandy2&&!(sd2.end&&ds>sd2.end)) ? d2 : (d2?'NEEDS STAFF':'');
       if(dandy1==='NEEDS STAFF')flags++;
       if(dandy2==='NEEDS STAFF')flags++;
     }
@@ -1109,8 +1124,8 @@ function _generateRoster(){
     if(rot.mwDate&&ds===rot.mwDate){
       const m1=rot.mw1||''; const m2=rot.mw2||'';
       const sm1=staff.find(x=>x.name===m1); const sm2=staff.find(x=>x.name===m2);
-      mw1 = (sm1&&sm1.morwell&&!(sm1.end&&ds>sm1.end)) ? m1 : (m1?'NEEDS STAFF':'');
-      mw2 = (sm2&&sm2.morwell&&!(sm2.end&&ds>sm2.end)) ? m2 : (m2?'NEEDS STAFF':'');
+      mw1 = (sm1&&sm1.morwell1&&!(sm1.end&&ds>sm1.end)) ? m1 : (m1?'NEEDS STAFF':'');
+      mw2 = (sm2&&sm2.morwell2&&!(sm2.end&&ds>sm2.end)) ? m2 : (m2?'NEEDS STAFF':'');
       if(mw1==='NEEDS STAFF')flags++;
       if(mw2==='NEEDS STAFF')flags++;
     }
