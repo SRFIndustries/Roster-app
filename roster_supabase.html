@@ -153,6 +153,12 @@
           <option value="2">Swing 2 (RDO even Mondays)</option>
         </select>
       </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px;margin-bottom:2px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Accreditations</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="newDandyPM"> Dandy PM</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="newTullaPM"> Tulla PM</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="newMorwell"> Morwell</label>
+      </div>
       <button class="btn btn-full" onclick="addStaff()">+ Add to Roster</button>
     </div>
   </div>
@@ -174,6 +180,7 @@
       </select>
       <select id="uReason">
         <option value="Annual Leave">Annual Leave</option>
+        <option value="VBI">VBI</option>
         <option value="Training / Course">Training / Course</option>
         <option value="Other">Other (enter below)</option>
       </select>
@@ -265,7 +272,7 @@
   <div class="tab-content active" id="tab-roster">
     <div class="legend">
       <div class="legend-item"><div class="legend-dot" style="background:rgba(239,68,68,.4)"></div>Needs staff / Conflict</div>
-      <div class="legend-item"><div class="legend-dot" style="background:rgba(251,146,60,.4)"></div>Rostered too soon (under 3 weeks from last rotation)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(251,146,60,.4)"></div>Rostered too soon (&lt;3w gap)</div>
       <div class="legend-item"><div class="legend-dot" style="background:rgba(180,83,9,.4)"></div>Public holiday</div>
       <div class="legend-item"><div class="legend-dot" style="background:#1a1a2e;border:1px solid #a78bfa"></div>Unavailable (AL/Training)</div>
       <div class="legend-item"><div class="legend-dot" style="background:#0e2a30;border:1px solid #67e8f9"></div>RDO week</div>
@@ -282,14 +289,13 @@
             <th>Dandy PM #1</th><th>Dandy PM #2</th>
             <th>Tulla PM #1</th><th>Tulla PM #2</th>
             <th>Morwell #1</th><th>Morwell #2</th>
-            <th>Trade School</th><th>VBI</th><th>PDR</th>
             <th>Pub EH</th><th>Pub Outlook</th><th>Swing</th>
             <th>AL</th><th>AL</th><th>School Hols</th>
             <th>Public Holiday</th>
           </tr>
         </thead>
         <tbody id="rosterBody">
-          <tr><td colspan="19" style="text-align:center;padding:40px;color:var(--text3)">Generate the roster to see a preview</td></tr>
+          <tr><td colspan="16" style="text-align:center;padding:40px;color:var(--text3)">Generate the roster to see a preview</td></tr>
         </tbody>
       </table>
     </div>
@@ -519,6 +525,12 @@ function renderStaff(){
           <label style="font-size:10px;color:var(--text3);white-space:nowrap">No.1 from</label>
           <input id="ei-no1from" type="date" value="${s.no1From||''}" style="flex:1">
         </div>
+        <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Accreditations</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-dandyPM" ${s.dandyPM?'checked':''}> Dandy PM</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-tullaPM" ${s.tullaPM?'checked':''}> Tulla PM</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" id="ei-morwell" ${s.morwell?'checked':''}> Morwell</label>
+        </div>
       </div>`;
     } else {
       list.innerHTML+=`<div class="staff-item">
@@ -532,6 +544,9 @@ function renderStaff(){
               ${s.swing?`<span class="badge ${swingBadgeClass(s.swing)}">${swingLabel(s.swing)}</span>`:''}
               ${isNew?'<span class="badge badge-new">NEW</span>':''}
               ${s.end?'<span class="badge badge-left">'+s.end.slice(5)+'</span>':''}
+              ${s.dandyPM?'<span class="badge" style="background:#1a2a3d;color:#7ec8f5">DPM</span>':''}
+              ${s.tullaPM?'<span class="badge" style="background:#1a3d2a;color:#7ef5a0">TPM</span>':''}
+              ${s.morwell?'<span class="badge" style="background:#3d2a1a;color:#f5c07e">MW</span>':''}
             </div>
           </div>
           <div class="staff-dates">${s.start?s.start.slice(5):''} – ${s.end?s.end.slice(5):'→'}${s.no1From?' · No.1@'+s.no1From.slice(5):''}${s.swing?' · RDO SW'+s.swing:''}</div>
@@ -557,7 +572,10 @@ function saveEdit(name){
   staff[i].swing   = document.getElementById('ei-swing').value;
   staff[i].start   = document.getElementById('ei-start').value;
   staff[i].end     = document.getElementById('ei-end').value;
-  staff[i].no1From = document.getElementById('ei-no1from').value;
+  staff[i].no1From  = document.getElementById('ei-no1from').value;
+  staff[i].dandyPM  = document.getElementById('ei-dandyPM')?.checked||false;
+  staff[i].tullaPM  = document.getElementById('ei-tullaPM')?.checked||false;
+  staff[i].morwell  = document.getElementById('ei-morwell')?.checked||false;
   editingIdx=-1;
   autoSave();
   renderStaff();
@@ -570,7 +588,13 @@ function addStaff(){
     start:document.getElementById('newStart').value,
     end:document.getElementById('newEnd').value,
     no1From:document.getElementById('newNo1From').value,
-    swing:document.getElementById('newSwing').value});
+    swing:document.getElementById('newSwing').value,
+    dandyPM:document.getElementById('newDandyPM').checked,
+    tullaPM:document.getElementById('newTullaPM').checked,
+    morwell:document.getElementById('newMorwell').checked});
+  document.getElementById('newDandyPM').checked=false;
+  document.getElementById('newTullaPM').checked=false;
+  document.getElementById('newMorwell').checked=false;
   document.getElementById('newName').value='';
   autoSave();
   renderStaff();
@@ -668,23 +692,67 @@ function renderRotations(){
             ${recBadge(rec2,'no2')}
           </div>` : ''}
         </div>
+
         <div style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px;display:flex;flex-direction:column;gap:4px">
-          <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">🏭 Tulla PM / Morwell</div>
-          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Tulla PM #1</span><select id="redit-tulla1-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.tulla1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
-          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Tulla PM #2</span><select id="redit-tulla2-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.tulla2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
-          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Morwell #1</span><select id="redit-mw1-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
-          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Morwell #2</span><select id="redit-mw2-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
+          <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">🚗 Dandy PM (Wednesday)</div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <span style="font-size:10px;color:var(--text2);min-width:70px">Dandy #1</span>
+            <select id="redit-dandy1-${i}" style="flex:1;font-size:11px;padding:3px 6px">
+              ${['', ...staff.filter(s=>s.dandyPM).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.dandy1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <span style="font-size:10px;color:var(--text2);min-width:70px">Dandy #2</span>
+            <select id="redit-dandy2-${i}" style="flex:1;font-size:11px;padding:3px 6px">
+              ${['', ...staff.filter(s=>s.dandyPM).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.dandy2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+            </select>
+          </div>
         </div>
+
         <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:6px;display:flex;flex-direction:column;gap:4px">
-          <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">📚 Training / PDR</div>
-          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">Trade School</span><select id="redit-ts-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.ts||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
-          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">VBI</span><select id="redit-vbi-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.vbi||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
-          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">PDR</span><select id="redit-pdr-${i}" style="flex:1;font-size:11px;padding:3px 6px">${['', ...staff.map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.pdr||'')?'selected':''}>${n||'— none —'}</option>`).join('')}</select></div>
+          <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">🏭 Tulla PM</div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <span style="font-size:10px;color:var(--text2);min-width:70px">Tulla #1</span>
+            <select id="redit-tulla1-${i}" style="flex:1;font-size:11px;padding:3px 6px">
+              ${['', ...staff.filter(s=>s.tullaPM).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.tulla1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <span style="font-size:10px;color:var(--text2);min-width:70px">Tulla #2</span>
+            <select id="redit-tulla2-${i}" style="flex:1;font-size:11px;padding:3px 6px">
+              ${['', ...staff.filter(s=>s.tullaPM).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.tulla2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+            </select>
+          </div>
         </div>
+
+        <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:6px;display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">🔧 Morwell (Saturday)</div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <span style="font-size:10px;color:var(--text2);min-width:70px">Date</span>
+            <input type="date" id="redit-mwdate-${i}" value="${r.mwDate||''}" style="flex:1;font-size:11px;padding:3px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text)">
+          </div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <span style="font-size:10px;color:var(--text2);min-width:70px">Morwell #1</span>
+            <select id="redit-mw1-${i}" style="flex:1;font-size:11px;padding:3px 6px">
+              ${['', ...staff.filter(s=>s.morwell).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw1||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <span style="font-size:10px;color:var(--text2);min-width:70px">Morwell #2</span>
+            <select id="redit-mw2-${i}" style="flex:1;font-size:11px;padding:3px 6px">
+              ${['', ...staff.filter(s=>s.morwell).map(s=>s.name)].map(n=>`<option value="${n}" ${n===(r.mw2||'')?'selected':''}>${n||'— none —'}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
         <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:6px;display:flex;flex-direction:column;gap:4px">
           <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">🏫 School Holidays</div>
-          <div style="display:flex;gap:5px;align-items:center"><span style="font-size:10px;color:var(--text2);min-width:70px">School Hols</span><input type="text" id="redit-sch-${i}" value="${r.sch||''}" placeholder="e.g. Term 2 holidays" style="flex:1;font-size:11px;padding:3px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text)"></div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <span style="font-size:10px;color:var(--text2);min-width:70px">School Hols</span>
+            <input type="text" id="redit-sch-${i}" value="${r.sch||''}" placeholder="e.g. Term 2 holidays" style="flex:1;font-size:11px;padding:3px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text)">
+          </div>
         </div>
+
         <div style="display:flex;gap:5px;justify-content:flex-end;margin-top:6px;border-top:1px solid var(--border);padding-top:6px">
           <button class="btn" style="padding:3px 12px;font-size:11px" onclick="saveRotEdit(${i})">✓ Save</button>
           <button class="remove-btn" onclick="cancelRotEdit()" style="font-size:13px">✕</button>
@@ -719,19 +787,19 @@ function sortRotations(){
 }
 
 function saveRotEdit(i){
-  const r = rotations[i];
-  const thu    = document.getElementById(`redit-thu-${i}`)?.value    || r.thu;
-  const no1    = document.getElementById(`redit-no1-${i}`)?.value    || r.no1;
-  const no2    = document.getElementById(`redit-no2-${i}`)?.value    || r.no2;
-  const tulla1 = document.getElementById(`redit-tulla1-${i}`)?.value ?? r.tulla1 ?? '';
-  const tulla2 = document.getElementById(`redit-tulla2-${i}`)?.value ?? r.tulla2 ?? '';
-  const mw1    = document.getElementById(`redit-mw1-${i}`)?.value    ?? r.mw1    ?? '';
-  const mw2    = document.getElementById(`redit-mw2-${i}`)?.value    ?? r.mw2    ?? '';
-  const ts     = document.getElementById(`redit-ts-${i}`)?.value     ?? r.ts     ?? '';
-  const vbi    = document.getElementById(`redit-vbi-${i}`)?.value    ?? r.vbi    ?? '';
-  const pdr    = document.getElementById(`redit-pdr-${i}`)?.value    ?? r.pdr    ?? '';
-  const sch    = document.getElementById(`redit-sch-${i}`)?.value    ?? r.sch    ?? '';
-  rotations[i] = { thu, no1, no2, tulla1, tulla2, mw1, mw2, ts, vbi, pdr, sch };
+  const r2 = rotations[i];
+  const thu    = document.getElementById(`redit-thu-${i}`)?.value    || r2.thu;
+  const no1    = document.getElementById(`redit-no1-${i}`)?.value    || r2.no1;
+  const no2    = document.getElementById(`redit-no2-${i}`)?.value    || r2.no2;
+  const dandy1 = document.getElementById(`redit-dandy1-${i}`)?.value ?? r2.dandy1 ?? '';
+  const dandy2 = document.getElementById(`redit-dandy2-${i}`)?.value ?? r2.dandy2 ?? '';
+  const tulla1 = document.getElementById(`redit-tulla1-${i}`)?.value ?? r2.tulla1 ?? '';
+  const tulla2 = document.getElementById(`redit-tulla2-${i}`)?.value ?? r2.tulla2 ?? '';
+  const mwDate = document.getElementById(`redit-mwdate-${i}`)?.value ?? r2.mwDate ?? '';
+  const mw1    = document.getElementById(`redit-mw1-${i}`)?.value    ?? r2.mw1    ?? '';
+  const mw2    = document.getElementById(`redit-mw2-${i}`)?.value    ?? r2.mw2    ?? '';
+  const sch    = document.getElementById(`redit-sch-${i}`)?.value    ?? r2.sch    ?? '';
+  rotations[i] = { thu, no1, no2, dandy1, dandy2, tulla1, tulla2, mwDate, mw1, mw2, sch };
   sortRotations();
   editingRotIdx = -1;
   autoSave();
@@ -744,7 +812,7 @@ function addRotationSlot(){
   const last=rotations[rotations.length-1];
   let nextThu=last?new Date(last.thu):new Date('2026-03-26');
   nextThu.setDate(nextThu.getDate()+7);
-  rotations.push({thu:fmtDate(nextThu),no1:'',no2:'',tulla1:'',tulla2:'',mw1:'',mw2:'',ts:'',vbi:'',pdr:'',sch:''});
+  rotations.push({thu:fmtDate(nextThu),no1:'',no2:'',dandy1:'',dandy2:'',tulla1:'',tulla2:'',mwDate:'',mw1:'',mw2:'',sch:''});
   sortRotations();
   editingRotIdx = rotations.length - 1;
   autoSave();
@@ -960,7 +1028,7 @@ function _generateRoster(){
       else {
         const u = rot.thu ? weekHasUnavail(no1, rot.thu) : isUnavailable(no1, ds);
         if(u) no1UnavailNote=`${no1}: ${u.reason} (${u.from}–${u.to})`;
-        if(dow===1&&s.swing&&rot.thu){  // only check on the Monday of the week
+        if(dow===1&&s.swing&&rot.thu){
           if(isRdoMonday(d, s.swing)){
             no1RdoConflict=`${no1} has RDO on ${ds} (Swing ${s.swing}) — on-call this week`;
             flags++;
@@ -980,7 +1048,7 @@ function _generateRoster(){
       else {
         const u = rot.thu ? weekHasUnavail(no2, rot.thu) : isUnavailable(no2, ds);
         if(u) no2UnavailNote=`${no2}: ${u.reason} (${u.from}–${u.to})`;
-        if(dow===1&&s.swing&&rot.thu){  // only check on the Monday of the week
+        if(dow===1&&s.swing&&rot.thu){
           if(isRdoMonday(d, s.swing)){
             no2RdoConflict=`${no2} has RDO on ${ds} (Swing ${s.swing}) — on-call this week`;
             flags++;
@@ -994,11 +1062,28 @@ function _generateRoster(){
       }
     }
 
+    // Dandy PM — Wednesday only, from rotation's stored dandy1/dandy2
     let dandy1='',dandy2='';
-    if(isWed&&wedChangeovers[ds]){
-      [dandy1,dandy2]=wedChangeovers[ds];
+    if(isWed){
+      if(rot.dandy1!==undefined||rot.dandy2!==undefined){
+        dandy1=rot.dandy1||''; dandy2=rot.dandy2||'';
+      } else if(wedChangeovers[ds]){
+        [dandy1,dandy2]=wedChangeovers[ds];
+      }
       if(dandy1){const s=staff.find(x=>x.name===dandy1);if(!s||(s.end&&ds>s.end)){dandy1='NEEDS STAFF';flags++;}}
       if(dandy2){const s=staff.find(x=>x.name===dandy2);if(!s||(s.end&&ds>s.end)){dandy2='NEEDS STAFF';flags++;}}
+    }
+    // Tulla PM — Wednesday only, from rotation
+    let tulla1='',tulla2='';
+    if(isWed&&rot.tulla1!==undefined){
+      tulla1=rot.tulla1||''; tulla2=rot.tulla2||'';
+    }
+    // Morwell — specific Saturday stored in rotation
+    let mw1='',mw2='';
+    if(rot.mwDate&&ds===rot.mwDate){
+      mw1=rot.mw1||''; mw2=rot.mw2||'';
+      if(mw1){const s=staff.find(x=>x.name===mw1);if(!s||(s.end&&ds>s.end)){mw1='NEEDS STAFF';flags++;}}
+      if(mw2){const s=staff.find(x=>x.name===mw2);if(!s||(s.end&&ds>s.end)){mw2='NEEDS STAFF';flags++;}}
     }
 
     const pub=d<pubCutoff;
@@ -1038,8 +1123,7 @@ function _generateRoster(){
       isPhDay:!!phName,phName:phName||'',
       no1,no2,no1Flag,no2Flag,no1PrevConflict,no2PrevConflict,no1RdoConflict,no2RdoConflict,
       no1UnavailNote,no2UnavailNote,no1GapConflict,no2GapConflict,
-      dandy1,dandy2,tulla1:rot.tulla1||'',tulla2:rot.tulla2||'',mw1:rot.mw1||'',mw2:rot.mw2||'',
-      ts:rot.ts||'',vbi:rot.vbi||'',pdr:rot.pdr||'',sch:rot.sch||'',
+      dandy1,dandy2,tulla1,tulla2,mw1,mw2,
       pubEH:pub?'Yes':'',pubOL:pub?'Yes':'',
       swing:rdoMonday,al1,al2,sch:rot.sch||'',
       isNewNo1:isNewStaff(no1),isNewNo2:isNewStaff(no2),
@@ -1074,7 +1158,7 @@ function renderAlerts(flags){
   let html='';
   if(rosterData.find(r=>r.isFlag)) html+=`<div class="alert">⚑ Staff availability issues found — red rows need a replacement assigned.</div>`;
   if(rdoConflicts.length) html+=`<div class="alert alert-warn">🔄 ${rdoConflicts.length} RDO conflict(s) — staff rostered during their RDO week.</div>`;
-  if(gapConflicts.length){const names=[...new Set(gapConflicts.map(c=>c.msg.split(' on-call')[0]))].join(', ');html+=`<div class="alert alert-warn" style="border-color:rgba(251,146,60,.4);background:rgba(251,146,60,.08);color:#fed7aa">⚠ ${gapConflicts.length} too-soon rotation(s) — ${names} rostered less than 3 weeks after a previous rotation.</div>`;}
+  if(gapConflicts.length){const gnames=[...new Set(gapConflicts.map(c=>c.msg.split(' on-call')[0]))].join(', ');html+=`<div class="alert alert-warn" style="border-color:rgba(251,146,60,.4);background:rgba(251,146,60,.08);color:#fed7aa">⚠ ${gapConflicts.length} too-soon rotation(s) — ${gnames} rostered less than 3 weeks from previous rotation.</div>`;}
   if(unavailConflicts.length) html+=`<div class="alert alert-warn" style="border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08);color:#c4b5fd">📅 ${[...new Set(unavailConflicts.map(c=>c.msg.split(':')[0]))].join(', ')} rostered during unavailability — shown with N/A badge.</div>`;
   if(phConflicts.length) html+=`<div class="alert alert-warn">⚠ ${phConflicts.length} public holiday repeat conflict(s).</div>`;
   if(fairness.length){
@@ -1122,11 +1206,8 @@ function renderTable(){
       ${cellHtml(r.dandy2,r.dandy2==='NEEDS STAFF',false,'','','')}
       ${cellHtml(r.tulla1,false,false,'','','')}
       ${cellHtml(r.tulla2,false,false,'','','')}
-      ${cellHtml(r.mw1,false,false,'','','')}
-      ${cellHtml(r.mw2,false,false,'','','')}
-      ${cellHtml(r.ts,false,false,'','','')}
-      ${cellHtml(r.vbi,false,false,'','','')}
-      ${cellHtml(r.pdr,false,false,'','','')}
+      ${cellHtml(r.mw1,r.mw1==='NEEDS STAFF',false,'','','')}
+      ${cellHtml(r.mw2,r.mw2==='NEEDS STAFF',false,'','','')}
       <td>${r.pubEH?`<span class="cell-name cell-yes">${r.pubEH}</span>`:''}</td>
       <td>${r.pubOL?`<span class="cell-name cell-yes">${r.pubOL}</span>`:''}</td>
       ${swCell}
@@ -1199,7 +1280,7 @@ function renderConflictPanel(){
 
   if(gapConflicts.length){
     html+=`<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#fb923c">⚠ Rostered Too Soon (${gapConflicts.length})</div>`;
-    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:10px">These staff are rostered on-call less than 3 weeks from another rotation. Go to Edit Rotations to reassign them.</div>`;
+    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:10px">These staff are rostered less than 3 weeks from another rotation. Go to Edit Rotations to reassign.</div>`;
     html+='<div class="conflict-list">';
     gapConflicts.forEach(c=>{html+=`<div class="conflict-item" style="border-color:rgba(251,146,60,.3);background:rgba(251,146,60,.06);color:#fed7aa"><strong style="color:#fb923c">Week of ${c.ds}</strong> — ${c.msg}</div>`;});
     html+='</div>';
@@ -1499,7 +1580,7 @@ function exportExcel(){
   var esc=function(v){return '"'+(String(v||'')).replace(/"/g,'""')+'"';};
   var hdrs=['Date','Call Out No.1','Call Out No.2','Dandy PM #1','Dandy PM #2',
     'Tulla PM #1','Tulla PM #2','Morwell #1','Morwell #2',
-    'Trade School','VBI','PDR','Pub EH','Pub Outlook','Swing',
+    'Pub EH','Pub Outlook','Swing',
     'Annual Leave','Annual Leave 2','School Hols','Public Holiday'];
   var rows=[hdrs.map(esc).join(',')];
   rosterData.forEach(function(r){
@@ -1507,7 +1588,7 @@ function exportExcel(){
       r.no1==='NEEDS STAFF'?'NEEDS STAFF':r.no1,
       r.no2==='NEEDS STAFF'?'NEEDS STAFF':r.no2,
       r.dandy1,r.dandy2,r.tulla1,r.tulla2,r.mw1,r.mw2,
-      r.ts,r.vbi,r.pdr,r.pubEH,r.pubOL,r.swing,r.al1,r.al2,r.sch,r.phName
+      r.pubEH,r.pubOL,r.swing,r.al1,r.al2,r.sch,r.phName
     ].map(esc).join(','));
   });
   rows.push('');
