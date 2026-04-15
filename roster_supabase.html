@@ -1086,16 +1086,12 @@ function _generateRoster(){
       }
     }
 
-    // Dandy PM — Wednesday only, from rotation's stored dandy1/dandy2
+    // Dandy PM — Wednesday only, from rotation's stored dandy1/dandy2 (accredited staff only)
     let dandy1='',dandy2='';
     if(isWed){
-      if(rot.dandy1!==undefined||rot.dandy2!==undefined){
-        dandy1=rot.dandy1||''; dandy2=rot.dandy2||'';
-      } else if(wedChangeovers[ds]){
-        [dandy1,dandy2]=wedChangeovers[ds];
-      }
-      if(dandy1){const s=staff.find(x=>x.name===dandy1);if(!s||(s.end&&ds>s.end)){dandy1='NEEDS STAFF';flags++;}}
-      if(dandy2){const s=staff.find(x=>x.name===dandy2);if(!s||(s.end&&ds>s.end)){dandy2='NEEDS STAFF';flags++;}}
+      dandy1=rot.dandy1||''; dandy2=rot.dandy2||'';
+      if(dandy1){const s=staff.find(x=>x.name===dandy1);if(!s||(s.end&&ds>s.end)||!s.dandyPM){dandy1='NEEDS STAFF';flags++;}}
+      if(dandy2){const s=staff.find(x=>x.name===dandy2);if(!s||(s.end&&ds>s.end)||!s.dandyPM){dandy2='NEEDS STAFF';flags++;}}
     }
     // Tulla PM — Wednesday only, from rotation
     let tulla1='',tulla2='';
@@ -1701,104 +1697,49 @@ function autoFixConflicts(){
   rotations.forEach(r => {
     const thuDate = r.thu;
 
-    // Fix No.1 RDO conflict
-    const no1staff = staff.find(x => x.name === r.no1);
-    if(no1staff && no1staff.swing){
-      const thu = parseDate(thuDate);
-      const mon = new Date(thu); mon.setDate(mon.getDate()+4);
-      if(isRdoMonday(mon, no1staff.swing)){
-        // Find best replacement for No.1
-        const replacement = staff
-          .filter(s => s.name !== r.no2)
-          .filter(s => isStaffAvailableForWeek(s.name, thuDate, '1'))
-          .sort((a,b) => (counts[a.name]?.total||0) - (counts[b.name]?.total||0));
-        if(replacement.length){
-          r.no1 = replacement[0].name;
-          if(!counts[r.no1]) counts[r.no1]={no1:0,no2:0,total:0};
-          counts[r.no1].no1++; counts[r.no1].total++;
-          fixed++;
-        }
-      }
-    }
-
-    // Fix No.2 RDO conflict
-    const no2staff = staff.find(x => x.name === r.no2);
-    if(no2staff && no2staff.swing){
-      const thu = parseDate(thuDate);
-      const mon = new Date(thu); mon.setDate(mon.getDate()+4);
-      if(isRdoMonday(mon, no2staff.swing)){
-        // Find best replacement for No.2
-        const replacement = staff
-          .filter(s => s.name !== r.no1)
-          .filter(s => isStaffAvailableForWeek(s.name, thuDate, '2'))
-          .sort((a,b) => (counts[a.name]?.total||0) - (counts[b.name]?.total||0));
-        if(replacement.length){
-          r.no2 = replacement[0].name;
-          if(!counts[r.no2]) counts[r.no2]={no1:0,no2:0,total:0};
-          counts[r.no2].no2++; counts[r.no2].total++;
-          fixed++;
-        }
-      }
-    }
-
-    // Fix No.1 unavailability conflict
-    if(r.no1 && r.no1 !== 'NEEDS STAFF'){
-      const s = staff.find(x => x.name === r.no1);
-      if(s && weekHasUnavail(r.no1, thuDate)){
-        const replacement = staff
-          .filter(s2 => s2.name !== r.no2)
-          .filter(s2 => isStaffAvailableForWeek(s2.name, thuDate, '1'))
-          .sort((a,b) => (counts[a.name]?.total||0) - (counts[b.name]?.total||0));
-        if(replacement.length){
-          r.no1 = replacement[0].name;
-          if(!counts[r.no1]) counts[r.no1]={no1:0,no2:0,total:0};
-          counts[r.no1].no1++; counts[r.no1].total++;
-          fixed++;
-        }
-      }
-    }
-
-    // Fix No.2 unavailability conflict
-    if(r.no2 && r.no2 !== 'NEEDS STAFF'){
-      const s = staff.find(x => x.name === r.no2);
-      if(s && weekHasUnavail(r.no2, thuDate)){
-        const replacement = staff
-          .filter(s2 => s2.name !== r.no1)
-          .filter(s2 => isStaffAvailableForWeek(s2.name, thuDate, '2'))
-          .sort((a,b) => (counts[a.name]?.total||0) - (counts[b.name]?.total||0));
-        if(replacement.length){
-          r.no2 = replacement[0].name;
-          if(!counts[r.no2]) counts[r.no2]={no1:0,no2:0,total:0};
-          counts[r.no2].no2++; counts[r.no2].total++;
-          fixed++;
-        }
-      }
-    }
-
-    // Fix NEEDS STAFF gaps
-    if(!r.no1 || r.no1 === 'NEEDS STAFF' || !staff.find(x=>x.name===r.no1)){
-      const replacement = staff
-        .filter(s => s.name !== r.no2)
-        .filter(s => isStaffAvailableForWeek(s.name, thuDate, '1'))
+    // Helper: find best replacement
+    function bestReplacement(role, exclude, thuDate, counts){
+      return staff
+        .filter(s => s.name !== exclude)
+        .filter(s => isStaffAvailableForWeek(s.name, thuDate, role))
         .sort((a,b) => (counts[a.name]?.total||0) - (counts[b.name]?.total||0));
-      if(replacement.length){
-        r.no1 = replacement[0].name;
-        if(!counts[r.no1]) counts[r.no1]={no1:0,no2:0,total:0};
-        counts[r.no1].no1++; counts[r.no1].total++;
-        fixed++;
-      }
     }
-    if(!r.no2 || r.no2 === 'NEEDS STAFF' || !staff.find(x=>x.name===r.no2)){
-      const replacement = staff
-        .filter(s => s.name !== r.no1)
-        .filter(s => isStaffAvailableForWeek(s.name, thuDate, '2'))
-        .sort((a,b) => (counts[a.name]?.total||0) - (counts[b.name]?.total||0));
-      if(replacement.length){
-        r.no2 = replacement[0].name;
-        if(!counts[r.no2]) counts[r.no2]={no1:0,no2:0,total:0};
-        counts[r.no2].no2++; counts[r.no2].total++;
-        fixed++;
+    function applyReplacement(role, r, thuDate, counts){
+      const isNo1 = role === '1';
+      const current = isNo1 ? r.no1 : r.no2;
+      const other = isNo1 ? r.no2 : r.no1;
+      const rep = bestReplacement(role, other, thuDate, counts);
+      if(rep.length){
+        if(isNo1){ r.no1 = rep[0].name; } else { r.no2 = rep[0].name; }
+        const name = isNo1 ? r.no1 : r.no2;
+        if(!counts[name]) counts[name]={no1:0,no2:0,total:0};
+        if(isNo1){ counts[name].no1++; } else { counts[name].no2++; }
+        counts[name].total++;
+        return true;
       }
+      return false;
+    }
+
+    // Check No.1
+    const s1 = staff.find(x => x.name === r.no1);
+    const needsFixNo1 = !r.no1 || r.no1==='NEEDS STAFF' || !s1 ||
+      (s1.end && thuDate > s1.end) ||
+      (s1.swing && isRdoMonday(new Date(parseDate(thuDate).setDate(parseDate(thuDate).getDate()+4)), s1.swing)) ||
+      weekHasUnavail(r.no1, thuDate) ||
+      weekGapViolation(r.no1, thuDate);
+    if(needsFixNo1){
+      if(applyReplacement('1', r, thuDate, counts)) fixed++;
+    }
+
+    // Check No.2
+    const s2 = staff.find(x => x.name === r.no2);
+    const needsFixNo2 = !r.no2 || r.no2==='NEEDS STAFF' || !s2 ||
+      (s2.end && thuDate > s2.end) ||
+      (s2.swing && isRdoMonday(new Date(parseDate(thuDate).setDate(parseDate(thuDate).getDate()+4)), s2.swing)) ||
+      weekHasUnavail(r.no2, thuDate) ||
+      weekGapViolation(r.no2, thuDate);
+    if(needsFixNo2){
+      if(applyReplacement('2', r, thuDate, counts)) fixed++;
     }
   });
 
